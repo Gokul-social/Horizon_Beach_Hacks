@@ -30,6 +30,8 @@ class Block:
     - actor: Who/what initiated the action
     - prev_hash: Hash of the previous block
     - hash: Hash of this block
+    - signature: Optional digital signature for actor verification
+    - public_key_pem: Optional PEM-encoded public key of the signer
     """
     index: int
     timestamp: str
@@ -39,6 +41,8 @@ class Block:
     prev_hash: str
     hash: str = field(default="")
     nonce: int = field(default=0)
+    signature: Optional[str] = field(default=None)
+    public_key_pem: Optional[str] = field(default=None)
     
     def calculate_hash(self) -> str:
         """
@@ -57,6 +61,21 @@ class Block:
         }, sort_keys=True, default=str)
         
         return hashlib.sha256(block_content.encode()).hexdigest()
+    
+    def signing_payload(self) -> str:
+        """
+        Generate the payload string used for digital signature.
+        
+        This is the canonical representation of block data that gets signed.
+        """
+        return json.dumps({
+            "index": self.index,
+            "timestamp": self.timestamp,
+            "event_type": self.event_type,
+            "data": self.data,
+            "actor": self.actor,
+            "prev_hash": self.prev_hash
+        }, sort_keys=True, default=str)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert block to dictionary."""
@@ -138,6 +157,61 @@ class BlockchainLedger:
         
         return new_block
     
+    def add_signed_block(
+        self,
+        event_type: str,
+        data: Dict[str, Any],
+        actor: str,
+        private_key,
+        public_key
+    ) -> Block:
+        """
+        Add a new digitally signed block to the chain.
+        
+        Args:
+            event_type: Type of event (incident_created, analysis_complete, etc.)
+            data: Event data payload
+            actor: Who initiated the action (user_id, agent_name, system)
+            private_key: RSA private key for signing
+            public_key: RSA public key for verification
+            
+        Returns:
+            The newly created and signed block
+        """
+        from app.ledger.signature import sign_data, serialize_public_key
+        
+        prev_block = self.chain[-1]
+        
+        new_block = Block(
+            index=len(self.chain),
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            event_type=event_type,
+            data=data,
+            actor=actor,
+            prev_hash=prev_block.hash
+        )
+        
+        # Sign the block
+        payload = new_block.signing_payload()
+        new_block.signature = sign_data(private_key, payload)
+        new_block.public_key_pem = serialize_public_key(public_key)
+        
+        # Calculate hash after signature is set
+        new_block.hash = new_block.calculate_hash()
+        
+        self.chain.append(new_block)
+        
+        logger.info(
+            "Signed block added to ledger",
+            index=new_block.index,
+            event_type=event_type,
+            actor=actor,
+            hash=new_block.hash[:16],
+            signed=True
+        )
+        
+        return new_block
+    
     def verify_chain(self) -> Dict[str, Any]:
         """
         Verify the integrity of the entire blockchain.
@@ -178,6 +252,17 @@ class BlockchainLedger:
             # Verify chain link
             if current.prev_hash != previous.hash:
                 issues.append(f"Block {i} has broken chain link")
+            
+            # Verify signature if present
+            if current.signature and current.public_key_pem:
+                from app.ledger.signature import verify_signature, deserialize_public_key
+                try:
+                    public_key = deserialize_public_key(current.public_key_pem)
+                    payload = current.signing_payload()
+                    if not verify_signature(public_key, payload, current.signature):
+                        issues.append(f"Block {i} has invalid signature")
+                except Exception as e:
+                    issues.append(f"Block {i} signature verification error: {str(e)}")
         
         is_valid = len(issues) == 0
         

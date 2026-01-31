@@ -219,3 +219,128 @@ class TestBlockchainLedger:
         assert stats["total_blocks"] == 4
         assert stats["events_by_type"]["type_a"] == 2
         assert stats["events_by_actor"]["user1"] == 2
+
+
+class TestSignatureModule:
+    """Test suite for digital signature functionality."""
+    
+    def test_key_generation(self):
+        """Test RSA keypair generation."""
+        from app.ledger.signature import generate_keys
+        
+        private_key, public_key = generate_keys()
+        
+        assert private_key is not None
+        assert public_key is not None
+    
+    def test_sign_and_verify(self):
+        """Test signing and verifying data."""
+        from app.ledger.signature import generate_keys, sign_data, verify_signature
+        
+        private_key, public_key = generate_keys()
+        message = "Test message for signing"
+        
+        signature = sign_data(private_key, message)
+        
+        assert signature is not None
+        assert len(signature) > 0
+        assert verify_signature(public_key, message, signature) is True
+    
+    def test_invalid_signature_rejected(self):
+        """Test that invalid signatures are rejected."""
+        from app.ledger.signature import generate_keys, sign_data, verify_signature
+        
+        private_key, public_key = generate_keys()
+        message = "Original message"
+        
+        signature = sign_data(private_key, message)
+        
+        # Tamper with the message
+        tampered_message = "Tampered message"
+        
+        assert verify_signature(public_key, tampered_message, signature) is False
+    
+    def test_key_serialization(self):
+        """Test key serialization and deserialization."""
+        from app.ledger.signature import (
+            generate_keys, serialize_public_key, deserialize_public_key,
+            sign_data, verify_signature
+        )
+        
+        private_key, public_key = generate_keys()
+        
+        # Serialize and deserialize
+        pem_string = serialize_public_key(public_key)
+        restored_key = deserialize_public_key(pem_string)
+        
+        # Verify signature still works with restored key
+        message = "Test message"
+        signature = sign_data(private_key, message)
+        
+        assert verify_signature(restored_key, message, signature) is True
+
+
+class TestSignedBlocks:
+    """Test suite for signed blockchain blocks."""
+    
+    def setup_method(self):
+        """Set up fresh ledger for each test."""
+        self.ledger = BlockchainLedger()
+    
+    def test_add_signed_block(self):
+        """Test adding a signed block."""
+        from app.ledger.signature import generate_keys
+        
+        private_key, public_key = generate_keys()
+        
+        block = self.ledger.add_signed_block(
+            event_type="test_signed",
+            data={"test": "data"},
+            actor="test_actor",
+            private_key=private_key,
+            public_key=public_key
+        )
+        
+        assert block.signature is not None
+        assert block.public_key_pem is not None
+        assert len(self.ledger.chain) == 2
+    
+    def test_signed_block_verification(self):
+        """Test that signed blocks pass verification."""
+        from app.ledger.signature import generate_keys
+        
+        private_key, public_key = generate_keys()
+        
+        self.ledger.add_signed_block(
+            event_type="signed_event",
+            data={"action": "test"},
+            actor="soc_analyst",
+            private_key=private_key,
+            public_key=public_key
+        )
+        
+        result = self.ledger.verify_chain()
+        
+        assert result["valid"] is True
+    
+    def test_tampered_signature_detected(self):
+        """Test that tampering with signed block is detected."""
+        from app.ledger.signature import generate_keys
+        
+        private_key, public_key = generate_keys()
+        
+        block = self.ledger.add_signed_block(
+            event_type="signed_event",
+            data={"original": True},
+            actor="test_actor",
+            private_key=private_key,
+            public_key=public_key
+        )
+        
+        # Tamper with the block data (but keep signature)
+        self.ledger.chain[-1].data = {"tampered": True}
+        
+        # Verification should fail
+        result = self.ledger.verify_chain()
+        
+        assert result["valid"] is False

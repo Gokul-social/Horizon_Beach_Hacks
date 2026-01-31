@@ -29,6 +29,76 @@ async def get_ledger_info(
     return ledger.get_chain_stats()
 
 
+@router.post("/log")
+async def log_event(
+    incident_id: str,
+    actor: str,
+    action: str,
+    event_type: str = "action_taken",
+    details: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_active_user)
+):
+    """
+    Log an immutable SOC event into the blockchain ledger.
+    
+    - **incident_id**: Incident identifier (e.g., INC101)
+    - **actor**: Who performed the action (e.g., ResponseAgent, SOC_Analyst)
+    - **action**: Description of the action taken
+    - **event_type**: Type of event (default: action_taken)
+    - **details**: Optional additional details
+    """
+    ledger = get_ledger()
+    
+    data = {
+        "incident_id": incident_id,
+        "action": action,
+    }
+    if details:
+        data["details"] = details
+    
+    block = ledger.add_block(
+        event_type=event_type,
+        data=data,
+        actor=actor
+    )
+    
+    logger.info(
+        "SOC event logged to ledger",
+        user_id=current_user.user_id,
+        incident_id=incident_id,
+        actor=actor,
+        block_index=block.index
+    )
+    
+    return block.to_dict()
+
+
+@router.get("/timeline/{incident_id}")
+async def get_incident_timeline(
+    incident_id: str,
+    current_user: TokenData = Depends(get_current_active_user)
+):
+    """
+    Get the complete blockchain timeline for a specific incident.
+    
+    Returns all ledger entries related to the given incident ID.
+    """
+    ledger = get_ledger()
+    
+    # Search for blocks with this incident_id in their data
+    timeline = [
+        block.to_dict()
+        for block in ledger.chain
+        if block.data.get("incident_id") == incident_id
+    ]
+    
+    return {
+        "incident_id": incident_id,
+        "total_events": len(timeline),
+        "timeline": timeline
+    }
+
+
 @router.get("/blocks")
 async def get_blocks(
     skip: int = Query(0, ge=0),
