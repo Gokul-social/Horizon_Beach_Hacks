@@ -119,12 +119,18 @@ export const twinApi = {
     entry_point: string;
     target?: string;
   }): Promise<SimulationResult> => {
+    // Convert attack_type to lowercase to ensure compatibility
+    const normalizedAttackType = params.attack_type.toLowerCase();
+    
     const searchParams = new URLSearchParams();
-    searchParams.append('attack_type', params.attack_type);
+    searchParams.append('attack_type', normalizedAttackType);
     searchParams.append('entry_point', params.entry_point);
     if (params.target) searchParams.append('target', params.target);
     
-    return apiClient.post(`${API_ENDPOINTS.twin.simulate}?${searchParams.toString()}`);
+    const url = `${API_ENDPOINTS.twin.simulate}?${searchParams.toString()}`;
+    console.log('Calling simulate endpoint:', url);
+    
+    return apiClient.post<SimulationResult>(url);
   },
 };
 

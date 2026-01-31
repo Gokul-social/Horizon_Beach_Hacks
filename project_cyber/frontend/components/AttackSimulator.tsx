@@ -41,7 +41,19 @@ export default function AttackSimulator() {
       setSimulationResult(result);
     } catch (err: unknown) {
       console.error("Simulation failed:", err);
-      const errorMessage = err instanceof Error ? err.message : "Simulation failed. Please ensure you are logged in.";
+      let errorMessage = "Simulation failed. Please ensure the backend is running.";
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        const errObj = err as { message?: string; status?: number; detail?: string };
+        if (errObj.message) {
+          errorMessage = errObj.message;
+        } else if (errObj.detail) {
+          errorMessage = errObj.detail;
+        }
+      }
+      
       setError(errorMessage);
     } finally {
       setSimulating(false);

@@ -13,14 +13,24 @@ from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
 
+# Determine if using SQLite
+is_sqlite = settings.database_url.startswith("sqlite")
+
 # Async engine for FastAPI
-async_engine = create_async_engine(
-    settings.database_url,
-    echo=settings.debug,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-)
+if is_sqlite:
+    # SQLite doesn't support pool_size/max_overflow
+    async_engine = create_async_engine(
+        settings.database_url,
+        echo=settings.debug,
+    )
+else:
+    async_engine = create_async_engine(
+        settings.database_url,
+        echo=settings.debug,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+    )
 
 # Async session factory
 AsyncSessionLocal = async_sessionmaker(

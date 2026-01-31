@@ -109,7 +109,17 @@ class ApiClient {
       config.body = JSON.stringify(body);
     }
 
-    let response = await fetch(`${this.baseUrl}${endpoint}`, config);
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}${endpoint}`, config);
+    } catch (fetchError) {
+      console.error('Fetch error:', fetchError);
+      throw {
+        message: `Network error: ${fetchError instanceof Error ? fetchError.message : 'Unknown network error'}`,
+        status: 0,
+        detail: fetchError,
+      } as ApiError;
+    }
 
     // Handle 401 - try to refresh token
     if (response.status === 401 && !skipAuth) {
@@ -118,7 +128,15 @@ class ApiClient {
         // Retry the request with new token
         requestHeaders['Authorization'] = `Bearer ${this.getToken()}`;
         config.headers = requestHeaders;
-        response = await fetch(`${this.baseUrl}${endpoint}`, config);
+        try {
+          response = await fetch(`${this.baseUrl}${endpoint}`, config);
+        } catch (fetchError) {
+          throw {
+            message: `Network error on retry: ${fetchError instanceof Error ? fetchError.message : 'Unknown network error'}`,
+            status: 0,
+            detail: fetchError,
+          } as ApiError;
+        }
       } else {
         // Redirect to login
         if (typeof window !== 'undefined') {
@@ -129,19 +147,35 @@ class ApiClient {
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      let errorDetail = '';
+      try {
+        const errorData = await response.json();
+        errorDetail = errorData.detail || JSON.stringify(errorData);
+      } catch {
+        errorDetail = await response.text();
+      }
+      
       throw {
-        message: errorData.detail || 'An error occurred',
+        message: errorDetail || `HTTP ${response.status}: An error occurred`,
         status: response.status,
-        detail: errorData.detail,
+        detail: errorDetail,
       } as ApiError;
     }
 
     // Handle empty responses
-    const text = await response.text();
-    if (!text) return {} as T;
-    
-    return JSON.parse(text) as T;
+    try {
+      const text = await response.text();
+      if (!text) return {} as T;
+      
+      return JSON.parse(text) as T;
+    } catch (parseError) {
+      console.error('Response parsing error:', parseError);
+      throw {
+        message: `Response parsing error: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`,
+        status: response.status,
+        detail: parseError,
+      } as ApiError;
+    }
   }
 
   // Convenience methods

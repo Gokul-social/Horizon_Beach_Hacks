@@ -299,14 +299,19 @@ async def run_attack_simulation(
     
     Simulates an attack scenario from an entry point, analyzing
     possible attack paths, blast radius, and potential impact.
+    Each attack type has different characteristics and impact patterns.
     """
     import uuid
+    from collections import deque
     
     twin = get_twin_engine()
     
     # Initialize with sample network if empty
     if twin.graph.number_of_nodes() == 0:
         twin.initialize_sample_network()
+    
+    # Normalize attack type
+    attack_type = attack_type.lower()
     
     # Get network stats for context
     stats = twin.get_network_stats()
@@ -319,7 +324,6 @@ async def run_attack_simulation(
     
     # Check if entry point exists, if not use a default
     if entry_point not in twin.graph:
-        # Use first available external-facing asset or any asset
         external_assets = [
             aid for aid, meta in twin.asset_metadata.items()
             if meta.get("zone") == "dmz" or meta.get("zone") == "external"
@@ -340,88 +344,157 @@ async def run_attack_simulation(
                 "recommendations": ["No assets in network topology. Add assets first."]
             }
     
-    # Calculate blast radius
-    blast_result = twin.calculate_blast_radius(entry_point, max_hops=4)
-    if "affected_assets" in blast_result:
-        blast_radius = blast_result.get("affected_assets", [])
-    elif "reachable_by_hop" in blast_result:
-        for hop_assets in blast_result.get("reachable_by_hop", {}).values():
-            blast_radius.extend(hop_assets)
+    # Attack type specific configuration
+    attack_config = {
+        "ransomware": {
+            "max_hops": 3,
+            "propagation_probability": 0.5,
+            "priority_types": ["server", "database", "workstation"],
+            "time_to_impact": "Hours",
+            "primary_method": "Network propagation via SMB/shares",
+        },
+        "apt": {
+            "max_hops": 6,
+            "propagation_probability": 0.25,
+            "priority_types": ["server", "network_device", "database"],
+            "time_to_impact": "Days to Weeks",
+            "primary_method": "Targeted lateral movement with persistence",
+        },
+        "insider": {
+            "max_hops": 2,
+            "propagation_probability": 0.0,  # Direct access, no spreading
+            "priority_types": ["database", "server"],
+            "time_to_impact": "Immediate",
+            "primary_method": "Direct access to authorized resources",
+        },
+        "ddos": {
+            "max_hops": 1,
+            "propagation_probability": 0.0,  # No propagation, external attack
+            "priority_types": ["firewall", "web_server", "network_device"],
+            "time_to_impact": "Seconds to Minutes",
+            "primary_method": "Overwhelming network bandwidth",
+        }
+    }
+    
+    config = attack_config.get(attack_type, attack_config["ransomware"])
+    
+    # Filter targets based on attack type
+    if attack_type == "insider":
+        # Insider threat targets data/databases
+        critical_assets = [
+            aid for aid, meta in twin.asset_metadata.items()
+            if meta.get("asset_type") in ["database", "server"]
+        ]
+    elif attack_type == "ddos":
+        # DDoS targets external-facing assets
+        critical_assets = [
+            aid for aid, meta in twin.asset_metadata.items()
+            if meta.get("zone") in ["dmz", "external"]
+        ]
+    else:
+        # Ransomware and APT target critical assets
+        critical_assets = [
+            aid for aid, meta in twin.asset_metadata.items()
+            if meta.get("criticality") == "critical"
+        ]
+    
+    # Calculate blast radius with attack-type-aware limiting
+    blast_result = twin.calculate_blast_radius(entry_point, max_hops=config["max_hops"])
+    
+    # Extract affected assets from blast radius result
+    if "critical_assets_at_risk" in blast_result:
+        blast_radius.extend(blast_result.get("critical_assets_at_risk", []))
+        blast_radius.extend(blast_result.get("high_assets_at_risk", []))
+    
+    # Use BFS to get reachable assets
+    visited = {entry_point}
+    queue = deque([entry_point])
+    hop_count = 0
+    
+    while queue and hop_count < config["max_hops"]:
+        level_size = len(queue)
+        for _ in range(level_size):
+            current = queue.popleft()
+            for neighbor in twin.graph.neighbors(current):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    # For insider/ddos, limit blast radius
+                    if attack_type in ["insider", "ddos"]:
+                        if len(blast_radius) < 5:  # Limit to 5 assets
+                            blast_radius.append(neighbor)
+                    else:
+                        blast_radius.append(neighbor)
+                    if attack_type not in ["insider", "ddos"]:  # Propagating attacks
+                        queue.append(neighbor)
+        hop_count += 1
     
     # Find attack paths to critical assets or target
-    critical_assets = [
-        aid for aid, meta in twin.asset_metadata.items()
-        if meta.get("criticality") == "critical"
-    ]
-    
     targets_to_check = [target] if target else critical_assets[:5]
     
     for t in targets_to_check:
         if t and t != entry_point and t in twin.graph:
-            found_paths = twin.find_attack_paths_bfs(entry_point, t, max_depth=6)
-            for path in found_paths[:3]:  # Limit paths per target
-                path_risk = len(path) * 2  # Simple risk calculation
+            found_paths = twin.find_attack_paths_bfs(entry_point, t, max_depth=config["max_hops"])
+            # Limit paths per target based on attack type
+            path_limit = 2 if attack_type == "insider" else 3
+            for path in found_paths[:path_limit]:
+                path_risk = len(path) * 2
+                
+                # Adjust risk scoring based on attack type
+                if attack_type == "ransomware":
+                    base_risk = 8.0  # Ransomware is highly damaging
+                elif attack_type == "apt":
+                    base_risk = 7.0  # APT is stealthy but effective
+                elif attack_type == "insider":
+                    base_risk = 9.0  # Insider threat bypasses defenses
+                else:  # ddos
+                    base_risk = 6.0  # DDoS is disruptive but limited scope
+                
+                risk_score = min(10, base_risk - len(path) * 0.5)
+                
                 paths_found.append({
                     "path": path,
-                    "risk_score": min(10, 10 - path_risk / 2),
-                    "description": f"Attack path via {len(path)} hops",
-                    "mitigations": [
-                        f"Segment network to isolate {path[1] if len(path) > 1 else entry_point}",
-                        "Implement zero-trust access controls",
-                        "Enable enhanced monitoring on path nodes"
-                    ]
+                    "risk_score": risk_score,
+                    "description": f"Attack path via {len(path)} hops - {config['primary_method']}",
+                    "mitigations": get_attack_mitigations(attack_type, path)
                 })
     
-    # Simulate lateral movement for impact assessment
-    sim_result = twin.simulate_lateral_movement(
-        initial_compromise=entry_point,
-        time_steps=10,
-        propagation_probability=0.4 if attack_type == "apt" else 0.3
-    )
-    
-    # Calculate risk assessment based on simulation
-    compromised_count = sim_result.get("total_compromised", 0)
-    critical_compromised = len(sim_result.get("critical_assets_compromised", []))
-    
-    if critical_compromised > 0:
-        risk_assessment = "CRITICAL"
-    elif compromised_count > stats.get("total_nodes", 1) * 0.5:
-        risk_assessment = "HIGH"
-    elif compromised_count > stats.get("total_nodes", 1) * 0.25:
-        risk_assessment = "MEDIUM"
+    # Simulate lateral movement (not applicable for insider/ddos)
+    if attack_type not in ["insider", "ddos"]:
+        sim_result = twin.simulate_lateral_movement(
+            initial_compromise=entry_point,
+            time_steps=10 if attack_type == "ransomware" else 5,
+            propagation_probability=config["propagation_probability"]
+        )
+        compromised_count = sim_result.get("total_compromised", 0)
+        critical_compromised = len(sim_result.get("critical_assets_compromised", []))
     else:
-        risk_assessment = "LOW"
+        # For insider/ddos, no lateral movement
+        compromised_count = len(blast_radius)
+        critical_compromised = len([a for a in blast_radius 
+                                    if twin.asset_metadata.get(a, {}).get("criticality") == "critical"])
     
-    # Generate recommendations based on attack type
-    base_recommendations = [
-        "Implement network segmentation to limit lateral movement",
-        "Deploy endpoint detection and response (EDR) solutions",
-        "Enable multi-factor authentication on all critical systems",
-        "Review and restrict privileged access"
-    ]
-    
+    # Calculate risk assessment based on attack type and impact
     if attack_type == "ransomware":
-        recommendations = [
-            "Maintain offline backups of critical data",
-            "Disable SMB v1 and restrict lateral SMB access",
-            *base_recommendations[:2]
-        ]
+        if compromised_count > stats.get("total_nodes", 1) * 0.6:
+            risk_assessment = "CRITICAL"
+        elif compromised_count > stats.get("total_nodes", 1) * 0.3:
+            risk_assessment = "HIGH"
+        else:
+            risk_assessment = "MEDIUM"
     elif attack_type == "apt":
-        recommendations = [
-            "Implement advanced threat hunting procedures",
-            "Deploy network traffic analysis tools",
-            "Enable enhanced logging and SIEM correlation",
-            *base_recommendations[:1]
-        ]
+        if critical_compromised > 2:
+            risk_assessment = "CRITICAL"
+        elif critical_compromised > 0:
+            risk_assessment = "HIGH"
+        else:
+            risk_assessment = "MEDIUM"
     elif attack_type == "insider":
-        recommendations = [
-            "Implement data loss prevention (DLP) controls",
-            "Monitor privileged user activity",
-            "Apply principle of least privilege",
-            *base_recommendations[:1]
-        ]
-    else:
-        recommendations = base_recommendations[:4]
+        risk_assessment = "CRITICAL"  # Insider threats are always critical
+    else:  # ddos
+        risk_assessment = "HIGH"  # DDoS impacts availability
+    
+    # Generate attack-specific recommendations
+    recommendations = get_attack_recommendations(attack_type)
     
     logger.info(
         "Attack simulation complete",
@@ -444,6 +517,84 @@ async def run_attack_simulation(
         "simulation_details": {
             "total_compromised": compromised_count,
             "critical_compromised": critical_compromised,
-            "propagation_rate": sim_result.get("propagation_rate", 0)
+            "propagation_rate": config["propagation_probability"],
+            "time_to_impact": config["time_to_impact"],
+            "primary_method": config["primary_method"],
+            "attack_scope": len(blast_radius)
         }
     }
+
+
+def get_attack_mitigations(attack_type: str, path: List[str]) -> List[str]:
+    """Generate attack-specific mitigations based on attack path."""
+    if attack_type == "ransomware":
+        return [
+            "Maintain offline backups of data",
+            f"Isolate {path[-1] if len(path) > 1 else path[0]} from network",
+            "Disable macro execution in documents",
+            "Restrict SMB v1 access"
+        ]
+    elif attack_type == "apt":
+        return [
+            f"Implement threat hunting for {path[0]}",
+            "Deploy network segmentation between zones",
+            "Enable enhanced logging and correlation",
+            "Isolate compromised {path[-1] if len(path) > 1 else path[0]}"
+        ]
+    elif attack_type == "insider":
+        return [
+            "Implement data loss prevention (DLP)",
+            f"Monitor access to {path[-1] if len(path) > 1 else path[0]}",
+            "Apply principle of least privilege",
+            "Conduct user behavior analytics"
+        ]
+    else:  # ddos
+        return [
+            "Deploy DDoS mitigation service",
+            f"Rate limit traffic to {path[0]}",
+            "Implement geo-blocking if applicable",
+            "Scale infrastructure capacity"
+        ]
+
+
+def get_attack_recommendations(attack_type: str) -> List[str]:
+    """Generate comprehensive recommendations based on attack type."""
+    recommendations = {
+        "ransomware": [
+            "Maintain offline backups of critical data",
+            "Disable SMB v1 and restrict lateral SMB access",
+            "Implement network segmentation to limit lateral movement",
+            "Deploy endpoint detection and response (EDR) solutions",
+            "Enable immutable backups and retention policies",
+            "Regular backup restoration testing"
+        ],
+        "apt": [
+            "Implement advanced threat hunting procedures",
+            "Deploy network traffic analysis tools",
+            "Enable enhanced logging and SIEM correlation",
+            "Restrict lateral movement with network segmentation",
+            "Implement zero-trust access principles",
+            "Conduct red team exercises regularly",
+            "Use behavioral analytics to detect anomalies"
+        ],
+        "insider": [
+            "Implement data loss prevention (DLP) controls",
+            "Monitor privileged user activity continuously",
+            "Apply principle of least privilege strictly",
+            "Conduct user behavior analytics",
+            "Implement multi-factor authentication",
+            "Regular access reviews and recertification",
+            "Separate duties for critical operations"
+        ],
+        "ddos": [
+            "Deploy DDoS mitigation and filtering services",
+            "Implement rate limiting on network edge",
+            "Increase bandwidth capacity with redundancy",
+            "Configure automatic traffic scrubbing",
+            "Establish ISP-level DDoS protection contracts",
+            "Test failover and redundancy regularly"
+        ]
+    }
+    
+    return recommendations.get(attack_type, recommendations["ransomware"])
+
