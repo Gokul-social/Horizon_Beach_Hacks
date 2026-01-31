@@ -402,6 +402,7 @@ class RiskService:
         """
         result = await self.db.execute(
             select(Risk)
+            .options(selectinload(Risk.cve), selectinload(Risk.asset))
             .where(Risk.status != RiskStatus.RESOLVED)
             .order_by(Risk.bwvs_score.desc())
             .limit(limit)

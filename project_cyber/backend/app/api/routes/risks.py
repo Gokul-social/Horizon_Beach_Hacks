@@ -18,6 +18,40 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
+@router.get("/top10/public", response_model=TopRisksResponse)
+async def get_top_10_risks_public(
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get the Top 10 prioritized risks (PUBLIC - no auth required).
+    
+    This endpoint is for demo purposes and provides public access
+    to the Top 10 risks dashboard.
+    
+    Returns the highest priority risks based on:
+    - BWVS (Business-Weighted Vulnerability Score)
+    - Freshness (how recent the threat is)
+    - Trend Factor (velocity of spread)
+    
+    Priority Formula: BWVS × Freshness × TrendFactor
+    """
+    risk_service = RiskService(db)
+    
+    top_risks = await risk_service.get_top_risks(limit=10)
+    
+    logger.info(
+        "Top 10 risks retrieved (public)",
+        risks_count=len(top_risks)
+    )
+    
+    from datetime import datetime
+    return TopRisksResponse(
+        risks=top_risks,
+        last_calculated=datetime.utcnow(),
+        calculation_interval_minutes=5
+    )
+
+
 @router.get("/top10", response_model=TopRisksResponse)
 async def get_top_10_risks(
     current_user: TokenData = Depends(get_current_active_user),

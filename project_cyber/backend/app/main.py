@@ -37,6 +37,26 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database initialized")
     
+    # Run startup seeding if database is empty
+    try:
+        from app.database import AsyncSessionLocal
+        from app.services.seeder import run_startup_seed
+        
+        async with AsyncSessionLocal() as db:
+            seed_result = await run_startup_seed(db)
+            if seed_result:
+                logger.info(
+                    "Startup seeding completed",
+                    assets=seed_result["assets_created"],
+                    cves=seed_result["cves_stored"],
+                    risks=seed_result["risks_created"]
+                )
+            else:
+                logger.info("Database already seeded, skipping startup seed")
+    except Exception as e:
+        logger.error("Startup seeding failed", error=str(e))
+        # Continue startup even if seeding fails
+    
     # Start background scheduler
     setup_scheduler()
     logger.info("Background scheduler started")

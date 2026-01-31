@@ -16,6 +16,7 @@ from app.api.routes import (
     ledger,
     twin,
     cves,
+    admin,
 )
 
 # Main API router
@@ -31,5 +32,6 @@ api_router.include_router(playbooks.router, prefix="/playbooks", tags=["Playbook
 api_router.include_router(ledger.router, prefix="/ledger", tags=["Audit Ledger"])
 api_router.include_router(twin.router, prefix="/twin", tags=["Digital Twin"])
 api_router.include_router(cves.router, prefix="/cves", tags=["CVE Management"])
+api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
 
 __all__ = ["api_router"]
