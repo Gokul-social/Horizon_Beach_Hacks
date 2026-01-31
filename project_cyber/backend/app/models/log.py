@@ -5,7 +5,7 @@ This module defines the SecurityLog model for storing SIEM-like security events.
 """
 
 from sqlalchemy import Column, String, Text, Integer, Enum as SQLEnum, JSON, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid as UUID
 from sqlalchemy.orm import relationship
 import enum
 

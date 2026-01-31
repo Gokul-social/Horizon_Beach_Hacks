@@ -7,7 +7,7 @@ This module provides the base model class and common mixins for all database mod
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, DateTime, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid as UUID
 from sqlalchemy.orm import declared_attr
 
 from app.database import Base

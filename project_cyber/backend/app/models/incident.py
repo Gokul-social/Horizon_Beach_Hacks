@@ -5,7 +5,7 @@ This module defines the Incident and IncidentAnalysis models.
 """
 
 from sqlalchemy import Column, String, Float, Text, Enum as SQLEnum, JSON, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid as UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
