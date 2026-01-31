@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'RiskLens AI – Context-Aware Threat Intelligence Platform',
+  title: 'CONTEXTA – Context-Aware Threat Intelligence Platform',
   description: 'Enterprise-grade threat intelligence and business risk platform',
 }
 
