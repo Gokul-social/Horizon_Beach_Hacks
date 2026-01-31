@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     
     # Google Gemini API
     gemini_api_key: str = Field(default="", env="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-pro", env="GEMINI_MODEL")
+    gemini_model: str = Field(default="gemini-2.5-flash", env="GEMINI_MODEL")
     
     # CVE/NVD API
     nvd_api_key: Optional[str] = Field(default=None, env="NVD_API_KEY")
@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     
     # CORS
     cors_origins: str = Field(
-        default='["http://localhost:3000","http://localhost:8080"]',
+        default='["http://localhost:3000","http://localhost:3001","http://localhost:8080","http://127.0.0.1:3000","http://127.0.0.1:3001"]',
         env="CORS_ORIGINS"
     )
     

@@ -219,6 +219,126 @@ Return ONLY valid JSON with the following structure:
 
 Return ONLY the JSON, no additional text."""
 
+    async def generate_agent_discussion(
+        self,
+        risk_title: str,
+        agents: Optional[List[str]] = None,
+        max_messages: int = 8
+    ) -> List[Dict[str, Any]]:
+        """
+        Generate a sequential multi-agent discussion following the SOC pipeline.
+        
+        Pipeline Flow (as per flowchart):
+        1. Analyst + Intel (parallel) - Initial analysis and threat intelligence
+        2. Forensics - Deep dive based on Analyst+Intel findings
+        3. Business - Business impact based on Forensics findings
+        4. Response - Action plan based on all previous findings
+
+        Args:
+            risk_title: Short title of the risk/incident
+            agents: Optional list of agent types to include
+            max_messages: Maximum number of messages to generate
+
+        Returns:
+            List of discussion messages with agent, message, and timestamp_offset_seconds
+        """
+        allowed_agents = ["analyst", "intel", "forensics", "business", "response"]
+        selected_agents = [a for a in (agents or allowed_agents) if a in allowed_agents]
+        if not selected_agents:
+            selected_agents = allowed_agents
+
+        prompt = f"""You are generating a realistic SOC agent discussion for a security operations center UI.
+
+Risk Title: {risk_title}
+
+CRITICAL: Follow this EXACT sequential pipeline flow:
+
+**Stage 1 - Initial Analysis (Analyst + Intel work in parallel):**
+- ANALYST speaks first: Provides initial technical assessment, identifies attack patterns, affected systems
+- INTEL speaks next: Adds threat intelligence context, known threat actors, campaign attribution, IOCs
+
+**Stage 2 - Forensics (builds on Analyst + Intel findings):**
+- FORENSICS agent: References what Analyst and Intel found, digs deeper into evidence, artifacts, timeline
+
+**Stage 3 - Business Impact (builds on Forensics findings):**
+- BUSINESS agent: References forensics findings to assess business impact, affected operations, financial risk
+
+**Stage 4 - Response Planning (synthesizes all previous findings):**
+- RESPONSE agent: Creates action plan based on ALL previous agents' findings, prioritizes containment and remediation
+
+Agents to include: {selected_agents}
+
+RULES:
+1. Each agent MUST reference findings from previous agents in their stage
+2. Messages should show progressive understanding and escalation
+3. Use realistic SOC terminology and be specific to the risk title
+4. Return ONLY valid JSON
+5. Create {max_messages} messages total following the pipeline order
+6. timestamp_offset_seconds should increase progressively (0, 15, 30, 45, 60, 90, 120, 150)
+
+Example flow for ransomware:
+- Analyst: "Detecting encryption patterns on file servers..."
+- Intel: "This matches LockBit 3.0 TTPs, associated with RaaS group..."
+- Forensics: "Based on Intel's attribution, found lateral movement via PSExec, initial access was phishing..."
+- Business: "Per Forensics timeline, 3 critical systems affected, estimated 4-hour recovery..."
+- Response: "Given Business impact assessment, immediate actions: 1) Isolate affected hosts 2) Block C2 IPs from Intel..."
+
+Return ONLY JSON in this exact shape:
+{{
+  "discussion": [
+    {{"agent": "analyst", "message": "...", "timestamp_offset_seconds": 0}},
+    {{"agent": "intel", "message": "...", "timestamp_offset_seconds": 15}},
+    {{"agent": "forensics", "message": "...", "timestamp_offset_seconds": 45}},
+    {{"agent": "business", "message": "...", "timestamp_offset_seconds": 90}},
+    {{"agent": "response", "message": "...", "timestamp_offset_seconds": 120}}
+  ]
+}}
+"""
+
+        try:
+            response = await self._generate_content(prompt)
+            response = response.strip()
+            if response.startswith("```json"):
+                response = response[7:]
+            if response.startswith("```"):
+                response = response[3:]
+            if response.endswith("```"):
+                response = response[:-3]
+
+            parsed = json.loads(response.strip())
+            discussion = parsed.get("discussion", [])
+            if not isinstance(discussion, list) or not discussion:
+                raise GeminiServiceError("Gemini returned empty discussion")
+
+            sanitized = []
+            for item in discussion:
+                agent = item.get("agent")
+                if agent not in allowed_agents:
+                    continue
+                message = str(item.get("message", "")).strip()
+                if not message:
+                    continue
+                offset = item.get("timestamp_offset_seconds", 0)
+                try:
+                    offset = int(offset)
+                except (TypeError, ValueError):
+                    offset = 0
+                sanitized.append(
+                    {
+                        "agent": agent,
+                        "message": message,
+                        "timestamp_offset_seconds": max(0, offset)
+                    }
+                )
+
+            if not sanitized:
+                raise GeminiServiceError("Gemini discussion contained no valid messages")
+
+            return sanitized[:max_messages]
+        except (json.JSONDecodeError, GeminiServiceError) as e:
+            logger.error("Failed to generate Gemini discussion", error=str(e))
+            raise GeminiServiceError("Failed to generate Gemini discussion")
+
         try:
             response = await self._generate_content(prompt)
             response = response.strip()
