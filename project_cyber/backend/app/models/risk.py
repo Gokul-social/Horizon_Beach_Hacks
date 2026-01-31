@@ -5,7 +5,7 @@ This module defines the Risk and RiskScore models for risk tracking.
 """
 
 from sqlalchemy import Column, String, Float, Integer, Text, Boolean, JSON, ForeignKey, DateTime, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid as UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum

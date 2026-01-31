@@ -812,8 +812,3 @@ project_cyber/
 
 Proprietary - Contexta Platform
 
----
-
-<p align="center">
-  <b>Built with ❤️ for Security Operations Centers</b>
-</p>

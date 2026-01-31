@@ -1,0 +1,195 @@
+INFO:     Started server process [14404]
+INFO:     Waiting for application startup.
+{"version": "1.0.0", "event": "Starting Contexta Backend", "logger": "app.main", "level": "info", "timestamp": "2026-01-31T15:10:57.418174Z"}
+2026-01-31 20:40:57,422 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-01-31 20:40:57,422 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("users")
+PRAGMA main.table_info("users")
+2026-01-31 20:40:57,422 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,425 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("users")
+PRAGMA temp.table_info("users")
+2026-01-31 20:40:57,430 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,432 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("assets")
+PRAGMA main.table_info("assets")
+2026-01-31 20:40:57,432 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,432 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("assets")
+PRAGMA temp.table_info("assets")
+2026-01-31 20:40:57,432 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,434 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("cves")
+PRAGMA main.table_info("cves")
+2026-01-31 20:40:57,434 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,435 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("cves")
+PRAGMA temp.table_info("cves")
+2026-01-31 20:40:57,435 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,437 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("security_logs")
+PRAGMA main.table_info("security_logs")
+2026-01-31 20:40:57,437 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,438 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("security_logs")
+PRAGMA temp.table_info("security_logs")
+2026-01-31 20:40:57,438 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,440 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("risks")
+PRAGMA main.table_info("risks")
+2026-01-31 20:40:57,441 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,442 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("risks")
+PRAGMA temp.table_info("risks")
+2026-01-31 20:40:57,442 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,443 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("risk_scores")
+PRAGMA main.table_info("risk_scores")
+2026-01-31 20:40:57,443 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,444 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("risk_scores")
+PRAGMA temp.table_info("risk_scores")
+2026-01-31 20:40:57,444 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,444 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("incidents")
+PRAGMA main.table_info("incidents")
+2026-01-31 20:40:57,444 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,447 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("incidents")
+PRAGMA temp.table_info("incidents")
+2026-01-31 20:40:57,447 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,450 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("incident_analyses")
+PRAGMA main.table_info("incident_analyses")
+2026-01-31 20:40:57,450 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,451 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("incident_analyses")
+PRAGMA temp.table_info("incident_analyses")
+2026-01-31 20:40:57,451 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,451 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("ledger_blocks")
+PRAGMA main.table_info("ledger_blocks")
+2026-01-31 20:40:57,451 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,454 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("ledger_blocks")
+PRAGMA temp.table_info("ledger_blocks")
+2026-01-31 20:40:57,454 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,455 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("playbooks")
+PRAGMA main.table_info("playbooks")
+2026-01-31 20:40:57,455 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,458 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("playbooks")
+PRAGMA temp.table_info("playbooks")
+2026-01-31 20:40:57,458 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,458 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("playbook_executions")
+PRAGMA main.table_info("playbook_executions")
+2026-01-31 20:40:57,458 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,460 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("playbook_executions")
+PRAGMA temp.table_info("playbook_executions")
+2026-01-31 20:40:57,460 INFO sqlalchemy.engine.Engine [raw sql] ()
+[raw sql] ()
+2026-01-31 20:40:57,463 INFO sqlalchemy.engine.Engine ROLLBACK
+ROLLBACK
+ERROR:    Traceback (most recent call last):
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\visitors.py", line 139, in _compiler_dispatch
+    meth = getter(visitor)
+           ^^^^^^^^^^^^^^^
+AttributeError: 'SQLiteTypeCompiler' object has no attribute 'visit_UUID'. Did you mean: 'visit_uuid'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 6522, in visit_create_table
+    processed = self.process(
+                ^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 912, in process
+    return obj._compiler_dispatch(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\visitors.py", line 143, in _compiler_dispatch
+    return meth(self, **kw)  # type: ignore  # noqa: E501
+           ^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 6553, in visit_create_column
+    text = self.get_column_specification(column, first_pk=first_pk)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py", line 1534, in get_column_specification
+    coltype = self.dialect.type_compiler_instance.process(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 957, in process
+    return type_._compiler_dispatch(self, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\visitors.py", line 141, in _compiler_dispatch
+    return visitor.visit_unsupported_compilation(self, err, **kw)  # type: ignore  # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 962, in visit_unsupported_compilation
+    raise exc.UnsupportedCompilationError(self, element) from err
+sqlalchemy.exc.UnsupportedCompilationError: Compiler <sqlalchemy.dialects.sqlite.base.SQLiteTypeCompiler object at 0x000001DB434E2030> can't render element of type UUID (Background on this error at: https://sqlalche.me/e/20/l7de)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\starlette\routing.py", line 738, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\app\main.py", line 37, in lifespan
+    await init_db()
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\app\database.py", line 76, in init_db
+    await conn.run_sync(Base.metadata.create_all)
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\ext\asyncio\engine.py", line 891, in run_sync
+    return await greenlet_spawn(fn, self._proxied, *arg, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 202, in greenlet_spawn
+    result = context.switch(value)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\schema.py", line 5832, in create_all
+    bind._run_ddl_visitor(
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2448, in _run_ddl_visitor
+    visitorcallable(self.dialect, self, **kwargs).traverse_single(element)
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\visitors.py", line 671, in traverse_single
+    return meth(obj, **kw)
+           ^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\ddl.py", line 919, in visit_metadata
+    self.traverse_single(
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\visitors.py", line 671, in traverse_single
+    return meth(obj, **kw)
+           ^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\ddl.py", line 957, in visit_table
+    )._invoke_with(self.connection)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\ddl.py", line 315, in _invoke_with
+    return bind.execute(self)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1416, in execute
+    return meth(
+           ^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\ddl.py", line 181, in _execute_on_connection
+    return connection._execute_ddl(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1525, in _execute_ddl
+    compiled = ddl.compile(
+               ^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 309, in compile
+    return self._compiler(dialect, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\ddl.py", line 69, in _compiler
+    return dialect.ddl_compiler(dialect, self, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 867, in __init__
+    self.string = self.process(self.statement, **compile_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 912, in process
+    return obj._compiler_dispatch(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\visitors.py", line 143, in _compiler_dispatch
+    return meth(self, **kw)  # type: ignore  # noqa: E501
+           ^^^^^^^^^^^^^^^^
+  File "C:\projectnew\Horizon_Beach_Hacks\project_cyber\backend\venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 6532, in visit_create_table
+    raise exc.CompileError(
+sqlalchemy.exc.CompileError: (in table 'users', column 'id'): Compiler <sqlalchemy.dialects.sqlite.base.SQLiteTypeCompiler object at 0x000001DB434E2030> can't render element of type UUID
+
+ERROR:    Application startup failed. Exiting.

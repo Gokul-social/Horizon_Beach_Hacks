@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
     
     # Google Gemini API
-    gemini_api_key: str = Field(default="", env="AIzaSyDONJ-uupWvTxPLS1ro_uLd0wcHiRjLZl4")
+    gemini_api_key: str = Field(default="", env="GEMINI_API_KEY")
     gemini_model: str = Field(default="gemini-pro", env="GEMINI_MODEL")
     
     # CVE/NVD API

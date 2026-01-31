@@ -1,4 +1,4 @@
-# 🛡️ Contexta
+# Contexta - Team Horizon
 
 ## Autonomous Context-Aware Threat Intelligence & Business Risk Platform
 
@@ -12,7 +12,7 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Architecture](#architecture)
@@ -32,40 +32,40 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 **Contexta** is an enterprise-grade Security Operations Center (SOC) platform that combines AI-powered multi-agent analysis, custom risk scoring (BWVS), network topology simulation, and immutable audit logging to provide context-aware threat intelligence and business risk assessment.
 
 ### Key Capabilities
 
-| Feature                    | Description                                                                 |
-| -------------------------- | --------------------------------------------------------------------------- |
-| 🤖 **AI-Powered Analysis** | Multi-agent system with specialized roles for comprehensive threat analysis |
-| 📊 **BWVS Scoring**        | Business-Weighted Vulnerability Scoring that considers operational context  |
-| 🌐 **Digital Twin**        | Network topology simulation for attack path analysis                        |
-| ⛓️ **Blockchain Ledger**   | Immutable audit trail for compliance and forensics                          |
-| 🔄 **Automated Response**  | Playbook-driven incident response workflows                                 |
-| 📡 **CVE Intelligence**    | Real-time vulnerability feed from CISA KEV and NVD                          |
+| Feature                 | Description                                                                 |
+| ----------------------- | --------------------------------------------------------------------------- |
+| **AI-Powered Analysis** | Multi-agent system with specialized roles for comprehensive threat analysis |
+| **BWVS Scoring**        | Business-Weighted Vulnerability Scoring that considers operational context  |
+| **Digital Twin**        | Network topology simulation for attack path analysis                        |
+| **Blockchain Ledger**   | Immutable audit trail for compliance and forensics                          |
+| **Automated Response**  | Playbook-driven incident response workflows                                 |
+| **CVE Intelligence**    | Real-time vulnerability feed from CISA KEV and NVD                          |
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### High-Level System Architecture
 
 ```mermaid
 graph TB
-    subgraph Frontend["🖥️ Frontend (Next.js 14)"]
+    subgraph Frontend["Frontend (Next.js 14)"]
         UI[Dashboard UI]
         EXEC[Executive View]
         ATTACK[Attack Simulator]
         ALERTS[Alert Feed]
     end
 
-    subgraph Backend["⚙️ Backend (FastAPI)"]
+    subgraph Backend["Backend (FastAPI)"]
         API[API Gateway]
 
-        subgraph Agents["🤖 Multi-Agent System"]
+        subgraph Agents["Multi-Agent System"]
             ORCH[Orchestrator]
             AN[Analyst Agent]
             INT[Intel Agent]
@@ -74,14 +74,14 @@ graph TB
             RES[Response Agent]
         end
 
-        subgraph Engines["🔧 Core Engines"]
+        subgraph Engines["Core Engines"]
             BWVS[BWVS Calculator]
             TWIN[Digital Twin]
             LEDGER[Blockchain Ledger]
             PLAY[Playbook Engine]
         end
 
-        subgraph Services["📦 Services"]
+        subgraph Services["Services"]
             CVE[CVE Service]
             RISK[Risk Service]
             INC[Incident Service]
@@ -89,13 +89,13 @@ graph TB
         end
     end
 
-    subgraph External["🌍 External"]
+    subgraph External["External"]
         GEMINI[Google Gemini AI]
         CISA[CISA KEV Feed]
         NVD[NVD Database]
     end
 
-    subgraph Storage["💾 Data Layer"]
+    subgraph Storage["Data Layer"]
         PG[(PostgreSQL)]
         REDIS[(Redis Cache)]
     end
@@ -116,7 +116,7 @@ graph TB
 
 ---
 
-## 🔄 System Workflow
+## System Workflow
 
 ### Complete Incident Analysis Pipeline
 
@@ -141,8 +141,8 @@ sequenceDiagram
     API->>INC: Create Incident
     INC->>LEDGER: Log: incident_created
 
-    rect rgb(200, 220, 250)
-        Note over ORCH,RES: Parallel Multi-Agent Analysis
+    rect rgb(240, 248, 255)
+        Note over ORCH,RES: Parallel Analysis
         INC->>ORCH: Request Analysis
         par Agent Analysis
             ORCH->>AN: Analyze (Triage)
@@ -161,7 +161,7 @@ sequenceDiagram
     ORCH->>ORCH: Generate Consensus
     ORCH->>LEDGER: Log: consensus_generated
 
-    rect rgb(250, 220, 200)
+    rect rgb(255, 250, 240)
         Note over BWVS,TWIN: Risk Assessment
         ORCH->>BWVS: Calculate Risk Score
         BWVS-->>ORCH: BWVS Score
@@ -177,7 +177,7 @@ sequenceDiagram
 
 ---
 
-## 🧩 Core Components
+## Core Components
 
 ### 1. Multi-Agent SOC System
 
@@ -185,40 +185,34 @@ The heart of Contexta is a sophisticated multi-agent system powered by **Google 
 
 ```mermaid
 graph TB
-    subgraph Orchestrator["🎭 Agent Orchestrator"]
+    subgraph Orchestrator["Agent Orchestrator"]
         COORD[Coordinator]
         CONSENSUS[Consensus Engine]
     end
 
     subgraph Agents["Specialized Agents"]
-        AN["🔍 Analyst Agent<br/><i>Security Triage</i>"]
-        INT["🌐 Intel Agent<br/><i>Threat Intelligence</i>"]
-        FOR["🔬 Forensics Agent<br/><i>Evidence Analysis</i>"]
-        BUS["💼 Business Agent<br/><i>Impact Assessment</i>"]
-        RES["🚀 Response Agent<br/><i>Action Planning</i>"]
+        AN["Analyst Agent<br/>(Security Triage)"]
+        INT["Intel Agent<br/>(Threat Intelligence)"]
+        FOR["Forensics Agent<br/>(Evidence Analysis)"]
+        BUS["Business Agent<br/>(Impact Assessment)"]
+        RES["Response Agent<br/>(Action Planning)"]
     end
 
     INCIDENT[Incident Data] --> COORD
     COORD --> AN & INT & FOR & BUS & RES
     AN & INT & FOR & BUS & RES --> CONSENSUS
     CONSENSUS --> REPORT[Consensus Report]
-
-    style AN fill:#e1f5fe
-    style INT fill:#fff3e0
-    style FOR fill:#f3e5f5
-    style BUS fill:#e8f5e9
-    style RES fill:#fce4ec
 ```
 
 #### Agent Responsibilities
 
-| Agent            | Role                              | Key Outputs                                |
-| ---------------- | --------------------------------- | ------------------------------------------ |
-| **🔍 Analyst**   | Initial triage & classification   | Attack type, vector, severity              |
-| **🌐 Intel**     | Threat intelligence & attribution | TTPs, threat actors, IOCs                  |
-| **🔬 Forensics** | Evidence analysis                 | Timeline, artifacts, chain of custody      |
-| **💼 Business**  | Business impact assessment        | Financial impact, compliance, stakeholders |
-| **🚀 Response**  | Response planning                 | Actions, playbooks, resources              |
+| Agent         | Role                              | Key Outputs                                |
+| ------------- | --------------------------------- | ------------------------------------------ |
+| **Analyst**   | Initial triage & classification   | Attack type, vector, severity              |
+| **Intel**     | Threat intelligence & attribution | TTPs, threat actors, IOCs                  |
+| **Forensics** | Evidence analysis                 | Timeline, artifacts, chain of custody      |
+| **Business**  | Business impact assessment        | Financial impact, compliance, stakeholders |
+| **Response**  | Response planning                 | Actions, playbooks, resources              |
 
 #### Agent Analysis Flow
 
@@ -255,7 +249,7 @@ flowchart LR
 #### BWVS Formula
 
 ```
-BWVS = (CVSS×0.20 + Exploit×0.20 + Exposure×0.15 + Asset_Crit×0.20 + Business_Impact×0.15 + AI_Relevance×0.10) × 10
+BWVS = (CVSS*0.20 + Exploit*0.20 + Exposure*0.15 + Asset_Crit*0.20 + Business_Impact*0.15 + AI_Relevance*0.10) * 10
 ```
 
 ```mermaid
@@ -272,28 +266,28 @@ pie title BWVS Weight Distribution
 
 ```mermaid
 flowchart TB
-    subgraph Inputs["📥 Input Factors"]
-        CVSS[CVSS Score<br/>0-10]
-        EXPLOIT[Exploit Status<br/>0-10]
-        EXPOSURE[Exposure Level<br/>0-10]
-        ASSET[Asset Criticality<br/>0-10]
-        IMPACT[Business Impact<br/>0-10]
-        AI[AI Relevance<br/>0-10]
+    subgraph Inputs["Input Factors"]
+        CVSS[CVSS Score]
+        EXPLOIT[Exploit Status]
+        EXPOSURE[Exposure Level]
+        ASSET[Asset Criticality]
+        IMPACT[Business Impact]
+        AI[AI Relevance]
     end
 
-    subgraph Weights["⚖️ Apply Weights"]
-        W1["×0.20"]
-        W2["×0.20"]
-        W3["×0.15"]
-        W4["×0.20"]
-        W5["×0.15"]
-        W6["×0.10"]
+    subgraph Weights["Apply Weights"]
+        W1["x0.20"]
+        W2["x0.20"]
+        W3["x0.15"]
+        W4["x0.20"]
+        W5["x0.15"]
+        W6["x0.10"]
     end
 
-    subgraph Calculation["🧮 Calculate"]
+    subgraph Calculation["Calculate"]
         SUM[Sum Weighted Scores]
-        MULT["×10"]
-        SCORE[Final BWVS<br/>0-100]
+        MULT["x10"]
+        SCORE[Final BWVS (0-100)]
     end
 
     CVSS --> W1 --> SUM
@@ -303,8 +297,6 @@ flowchart TB
     IMPACT --> W5 --> SUM
     AI --> W6 --> SUM
     SUM --> MULT --> SCORE
-
-    style SCORE fill:#ff6b6b,color:#fff
 ```
 
 #### Priority Ranking Formula
@@ -312,7 +304,7 @@ flowchart TB
 For the Top-10 Risk Dashboard:
 
 ```
-Priority = BWVS × Freshness × TrendFactor
+Priority = BWVS * Freshness * TrendFactor
 ```
 
 | Factor          | Formula            | Description                               |
@@ -322,12 +314,12 @@ Priority = BWVS × Freshness × TrendFactor
 
 #### Risk Level Thresholds
 
-| BWVS Range | Risk Level  | Color  |
-| ---------- | ----------- | ------ |
-| 80-100     | 🔴 Critical | Red    |
-| 60-79      | 🟠 High     | Orange |
-| 40-59      | 🟡 Medium   | Yellow |
-| 0-39       | 🟢 Low      | Green  |
+| BWVS Range | Risk Level |
+| ---------- | ---------- |
+| 80-100     | Critical   |
+| 60-79      | High       |
+| 40-59      | Medium     |
+| 0-39       | Low        |
 
 ---
 
@@ -337,8 +329,8 @@ The **Digital Twin Engine** uses NetworkX to create a virtual representation of 
 
 ```mermaid
 graph TB
-    subgraph DigitalTwin["🌐 Digital Twin Engine"]
-        subgraph Network["Network Topology (NetworkX DiGraph)"]
+    subgraph DigitalTwin["Digital Twin Engine"]
+        subgraph Network["Network Topology"]
             DMZ[DMZ Server]
             WEB[Web Server]
             FW[Firewall]
@@ -358,7 +350,7 @@ graph TB
         BACKUP --- DC
     end
 
-    subgraph Analysis["🔍 Analysis Capabilities"]
+    subgraph Analysis["Analysis Capabilities"]
         BFS[BFS Attack Paths]
         DFS[DFS Attack Paths]
         LATERAL[Lateral Movement]
@@ -443,18 +435,13 @@ graph LR
     end
 
     Genesis --> Block1 --> Block2 --> Block3
-
-    style Genesis fill:#4caf50,color:#fff
-    style Block1 fill:#2196f3,color:#fff
-    style Block2 fill:#2196f3,color:#fff
-    style Block3 fill:#9c27b0,color:#fff
 ```
 
 #### Ledger Event Types
 
 ```mermaid
 graph TB
-    subgraph Events["📋 Event Categories"]
+    subgraph Events["Event Categories"]
         subgraph Incident["Incident Events"]
             IE1[incident_created]
             IE2[incident_updated]
@@ -489,19 +476,19 @@ Real-time vulnerability intelligence from authoritative sources.
 
 ```mermaid
 flowchart LR
-    subgraph Sources["🌐 External Sources"]
+    subgraph Sources["External Sources"]
         CISA[CISA KEV<br/>Known Exploited]
         NVD[NVD<br/>All CVEs]
     end
 
-    subgraph Collector["📥 CVE Collector"]
+    subgraph Collector["CVE Collector"]
         FETCH[Fetch CVEs]
         PARSE[Parse & Normalize]
         ENRICH[Enrich Data]
         STORE[Store in DB]
     end
 
-    subgraph Enrichment["✨ Enrichment"]
+    subgraph Enrichment["Enrichment"]
         EXPLOIT[Exploit Availability]
         MITRE[MITRE Mapping]
         CONTEXT[Context Tags]
@@ -519,12 +506,12 @@ Automated response workflows with step-by-step execution.
 
 ```mermaid
 flowchart TB
-    subgraph Trigger["🎯 Trigger"]
+    subgraph Trigger["Trigger"]
         INCIDENT[Incident]
         SEVERITY[Severity Check]
     end
 
-    subgraph Playbook["📋 Playbook Execution"]
+    subgraph Playbook["Playbook Execution"]
         SELECT[Select Playbook]
 
         subgraph Steps["Execution Steps"]
@@ -539,7 +526,7 @@ flowchart TB
         ESCALATE[Escalate]
     end
 
-    subgraph Complete["✅ Completion"]
+    subgraph Complete["Completion"]
         NOTIFY[Send Notifications]
         LOG[Log to Ledger]
         CLOSE[Close Incident]
@@ -555,38 +542,38 @@ flowchart TB
 
 ---
 
-## 📊 Data Flow Diagrams
+## Data Flow Diagrams
 
 ### Complete Data Flow
 
 ```mermaid
 flowchart TB
-    subgraph DataSources["📡 Data Sources"]
+    subgraph DataSources["Data Sources"]
         SIEM[SIEM Logs]
         CVE_FEED[CVE Feeds]
         ASSETS[Asset Inventory]
         USER_INPUT[User Input]
     end
 
-    subgraph Processing["⚙️ Processing Layer"]
+    subgraph Processing["Processing Layer"]
         INGEST[Data Ingestion]
         NORMALIZE[Normalization]
         CORRELATE[Correlation Engine]
     end
 
-    subgraph Analysis["🧠 Analysis Layer"]
+    subgraph Analysis["Analysis Layer"]
         AGENTS[Multi-Agent Analysis]
         BWVS_CALC[BWVS Calculation]
         TWIN_SIM[Digital Twin Simulation]
     end
 
-    subgraph Storage["💾 Storage Layer"]
+    subgraph Storage["Storage Layer"]
         PG[(PostgreSQL)]
         REDIS[(Redis)]
         LEDGER[(Blockchain)]
     end
 
-    subgraph Output["📤 Output Layer"]
+    subgraph Output["Output Layer"]
         DASH[Dashboard]
         ALERTS[Alerts]
         REPORTS[Reports]
@@ -633,7 +620,7 @@ sequenceDiagram
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -661,7 +648,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -683,7 +670,7 @@ cd contexta
 #### 2. Backend Setup
 
 ```bash
-cd backend
+cd project_cyber/backend
 
 # Create virtual environment
 python -m venv venv
@@ -706,7 +693,7 @@ uvicorn app.main:app --reload --port 8000
 #### 3. Frontend Setup
 
 ```bash
-cd frontend
+cd project_cyber/frontend
 
 # Install dependencies
 npm install
@@ -724,13 +711,13 @@ npm run dev
 ### Docker Deployment
 
 ```bash
-cd backend
+cd project_cyber/backend
 docker-compose up -d
 ```
 
 ---
 
-## 📚 API Reference
+## API Reference
 
 ### Core Endpoints
 
@@ -754,63 +741,63 @@ Full interactive API documentation available at:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 project_cyber/
-├── 📁 backend/                    # FastAPI Backend
-│   ├── 📁 app/
-│   │   ├── 📁 agents/             # Multi-agent system
+├── backend/                    # FastAPI Backend
+│   ├── app/
+│   │   ├── agents/             # Multi-agent system
 │   │   │   ├── orchestrator.py    # Agent coordinator
 │   │   │   ├── analyst.py         # Security analyst agent
 │   │   │   ├── intel.py           # Threat intel agent
 │   │   │   ├── forensics.py       # Forensics agent
 │   │   │   ├── business.py        # Business impact agent
 │   │   │   └── response.py        # Response agent
-│   │   ├── 📁 api/                # API routes
-│   │   ├── 📁 ingestion/          # Data collectors
+│   │   ├── api/                # API routes
+│   │   ├── ingestion/          # Data collectors
 │   │   │   ├── cve_collector.py   # CVE feed collector
 │   │   │   └── log_generator.py   # SIEM log generator
-│   │   ├── 📁 ledger/             # Blockchain ledger
+│   │   ├── ledger/             # Blockchain ledger
 │   │   │   └── chain.py           # Hash chain implementation
-│   │   ├── 📁 models/             # Database models
-│   │   ├── 📁 risk_engine/        # Risk scoring
+│   │   ├── models/             # Database models
+│   │   ├── risk_engine/        # Risk scoring
 │   │   │   ├── bwvs.py            # BWVS calculator
 │   │   │   └── ranking.py         # Priority ranking
-│   │   ├── 📁 schemas/            # Pydantic schemas
-│   │   ├── 📁 services/           # Business logic
-│   │   ├── 📁 twin/               # Digital twin
+│   │   ├── schemas/            # Pydantic schemas
+│   │   ├── services/           # Business logic
+│   │   ├── twin/               # Digital twin
 │   │   │   └── engine.py          # NetworkX simulation
 │   │   └── main.py                # Application entry point
-│   ├── 📁 docs/                   # Documentation
-│   ├── 📁 migrations/             # Alembic migrations
-│   ├── 📁 playbooks/              # Response playbooks
-│   └── 📁 tests/                  # Test suite
+│   ├── docs/                   # Documentation
+│   ├── migrations/             # Alembic migrations
+│   ├── playbooks/              # Response playbooks
+│   └── tests/                  # Test suite
 │
-├── 📁 frontend/                   # Next.js Frontend
-│   ├── 📁 app/                    # Next.js app router
-│   ├── 📁 components/             # React components
+├── frontend/                   # Next.js Frontend
+│   ├── app/                    # Next.js app router
+│   ├── components/             # React components
 │   │   ├── Dashboard.tsx          # Main dashboard
 │   │   ├── AttackSimulator.tsx    # Attack simulation UI
 │   │   ├── ExecutiveView.tsx      # Executive dashboard
-│   │   └── 📁 dashboard/          # Dashboard widgets
-│   └── 📁 contexts/               # React contexts
+│   │   └── dashboard/          # Dashboard widgets
+│   └── contexts/               # React contexts
 │
 └── README.md                      # This file
 ```
 
 ---
 
-## 📖 Additional Documentation
+## Additional Documentation
 
-- [Agent System Documentation](backend/docs/AGENTS.md)
-- [BWVS Scoring Methodology](backend/docs/BWVS.md)
-- [Digital Twin Engine](backend/docs/DIGITAL_TWIN.md)
-- [Blockchain Ledger](backend/docs/LEDGER.md)
+- [Agent System Documentation](project_cyber/backend/docs/AGENTS.md)
+- [BWVS Scoring Methodology](project_cyber/backend/docs/BWVS.md)
+- [Digital Twin Engine](project_cyber/backend/docs/DIGITAL_TWIN.md)
+- [Blockchain Ledger](project_cyber/backend/docs/LEDGER.md)
 
 ---
 
-## 🔒 Security Considerations
+## Security Considerations
 
 - All API endpoints require authentication
 - Role-based access control (RBAC)
@@ -821,12 +808,7 @@ project_cyber/
 
 ---
 
-## 📜 License
+## License
 
 Proprietary - Contexta Platform
 
----
-
-<p align="center">
-  <b>Built with ❤️ for Security Operations Centers</b>
-</p>
