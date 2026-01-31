@@ -291,3 +291,41 @@ def create_tokens_for_user(
         token_type="bearer",
         expires_in=settings.access_token_expire_minutes * 60
     )
+
+
+# Optional auth scheme for demo purposes
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
+
+
+async def get_current_user_optional(
+    token: Optional[str] = Depends(oauth2_scheme_optional)
+) -> Optional[TokenData]:
+    """
+    FastAPI dependency to optionally get current user from JWT token.
+    Returns None if no token or invalid token (for demo mode).
+    
+    Args:
+        token: Optional JWT token from request header
+        
+    Returns:
+        Token data with user information, or None for demo mode
+    """
+    if token is None:
+        # Demo mode - return a demo user
+        return TokenData(
+            user_id="demo-user",
+            email="demo@contexta.io",
+            role="analyst",
+            exp=datetime.now(timezone.utc) + timedelta(hours=24)
+        )
+    
+    try:
+        return verify_token(token, "access")
+    except HTTPException:
+        # Invalid token - fall back to demo mode
+        return TokenData(
+            user_id="demo-user",
+            email="demo@contexta.io",
+            role="analyst",
+            exp=datetime.now(timezone.utc) + timedelta(hours=24)
+        )

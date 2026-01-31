@@ -3,7 +3,7 @@
  */
 
 export const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
   baseApiUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
   tokenKey: process.env.NEXT_PUBLIC_TOKEN_KEY || 'contexta_access_token',
   refreshTokenKey: process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY || 'contexta_refresh_token',

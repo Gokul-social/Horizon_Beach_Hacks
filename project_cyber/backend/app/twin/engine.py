@@ -618,6 +618,98 @@ class DigitalTwinEngine:
             nodes=self.graph.number_of_nodes(),
             edges=self.graph.number_of_edges()
         )
+    
+    def initialize_sample_network(self) -> None:
+        """
+        Initialize a sample network topology for demonstration.
+        
+        Creates a realistic enterprise network with DMZ, internal,
+        and restricted zones including common assets and connections.
+        """
+        # DMZ Assets
+        self.add_asset("external_firewall", "firewall", "External Firewall", "critical", "dmz")
+        self.add_asset("web_server_1", "server", "Public Web Server 1", "high", "dmz")
+        self.add_asset("web_server_2", "server", "Public Web Server 2", "high", "dmz")
+        self.add_asset("mail_gateway", "server", "Mail Gateway", "high", "dmz")
+        self.add_asset("vpn_gateway", "network_device", "VPN Gateway", "critical", "dmz")
+        
+        # Internal Assets
+        self.add_asset("internal_firewall", "firewall", "Internal Firewall", "critical", "internal")
+        self.add_asset("ad_server", "server", "Active Directory Server", "critical", "internal")
+        self.add_asset("file_server", "server", "File Server", "high", "internal")
+        self.add_asset("app_server_1", "server", "Application Server 1", "high", "internal")
+        self.add_asset("app_server_2", "server", "Application Server 2", "medium", "internal")
+        self.add_asset("workstation_1", "workstation", "Finance Workstation", "medium", "internal")
+        self.add_asset("workstation_2", "workstation", "HR Workstation", "medium", "internal")
+        self.add_asset("workstation_3", "workstation", "IT Admin Workstation", "high", "internal")
+        self.add_asset("printer_1", "iot", "Network Printer", "low", "internal")
+        
+        # Restricted Zone (Data Center)
+        self.add_asset("db_server_1", "database", "Production Database", "critical", "restricted")
+        self.add_asset("db_server_2", "database", "Backup Database", "high", "restricted")
+        self.add_asset("scada_controller", "ics", "SCADA Controller", "critical", "restricted")
+        self.add_asset("backup_server", "server", "Backup Server", "high", "restricted")
+        
+        # DMZ Connections
+        self.add_connection("external_firewall", "web_server_1", "network", ["https", "http"])
+        self.add_connection("external_firewall", "web_server_2", "network", ["https", "http"])
+        self.add_connection("external_firewall", "mail_gateway", "network", ["smtp", "imaps"])
+        self.add_connection("external_firewall", "vpn_gateway", "network", ["ipsec"])
+        self.add_connection("external_firewall", "internal_firewall", "network", ["tcp"])
+        
+        # DMZ to Internal
+        self.add_connection("web_server_1", "internal_firewall", "network", ["tcp"])
+        self.add_connection("web_server_2", "internal_firewall", "network", ["tcp"])
+        self.add_connection("mail_gateway", "internal_firewall", "network", ["smtp"])
+        self.add_connection("vpn_gateway", "internal_firewall", "network", ["tcp"])
+        
+        # Internal Network Connections
+        self.add_connection("internal_firewall", "ad_server", "network", ["ldap", "kerberos"], bidirectional=True)
+        self.add_connection("internal_firewall", "file_server", "network", ["smb"], bidirectional=True)
+        self.add_connection("internal_firewall", "app_server_1", "network", ["tcp"], bidirectional=True)
+        self.add_connection("internal_firewall", "app_server_2", "network", ["tcp"], bidirectional=True)
+        
+        self.add_connection("ad_server", "file_server", "trust", ["ldap"], bidirectional=True)
+        self.add_connection("ad_server", "app_server_1", "trust", ["ldap"], bidirectional=True)
+        self.add_connection("ad_server", "app_server_2", "trust", ["ldap"], bidirectional=True)
+        self.add_connection("ad_server", "workstation_1", "trust", ["ldap"], bidirectional=True)
+        self.add_connection("ad_server", "workstation_2", "trust", ["ldap"], bidirectional=True)
+        self.add_connection("ad_server", "workstation_3", "trust", ["ldap"], bidirectional=True)
+        
+        self.add_connection("file_server", "workstation_1", "data_flow", ["smb"], bidirectional=True)
+        self.add_connection("file_server", "workstation_2", "data_flow", ["smb"], bidirectional=True)
+        self.add_connection("file_server", "workstation_3", "data_flow", ["smb"], bidirectional=True)
+        
+        self.add_connection("app_server_1", "db_server_1", "data_flow", ["sql"])
+        self.add_connection("app_server_2", "db_server_1", "data_flow", ["sql"])
+        
+        self.add_connection("workstation_3", "app_server_1", "network", ["ssh"])
+        self.add_connection("workstation_3", "app_server_2", "network", ["ssh"])
+        self.add_connection("workstation_3", "db_server_1", "network", ["ssh"])
+        self.add_connection("workstation_3", "scada_controller", "network", ["modbus"])
+        
+        # Restricted Zone Connections
+        self.add_connection("db_server_1", "db_server_2", "data_flow", ["sql"], bidirectional=True)
+        self.add_connection("db_server_1", "backup_server", "data_flow", ["tcp"])
+        self.add_connection("db_server_2", "backup_server", "data_flow", ["tcp"])
+        
+        # Printer on internal network
+        self.add_connection("printer_1", "workstation_1", "network", ["ipp"], bidirectional=True)
+        self.add_connection("printer_1", "workstation_2", "network", ["ipp"], bidirectional=True)
+        
+        # Add some sample vulnerabilities
+        self.add_vulnerability("web_server_1", "CVE-2024-1234", 8.5, True, True)
+        self.add_vulnerability("web_server_2", "CVE-2024-1234", 8.5, True, True)
+        self.add_vulnerability("app_server_1", "CVE-2024-5678", 7.2, True, True)
+        self.add_vulnerability("file_server", "CVE-2024-9012", 6.5, False, True)
+        self.add_vulnerability("printer_1", "CVE-2024-3456", 5.0, True, False)
+        self.add_vulnerability("scada_controller", "CVE-2024-7890", 9.8, True, True)
+        
+        logger.info(
+            "Sample network initialized",
+            nodes=self.graph.number_of_nodes(),
+            edges=self.graph.number_of_edges()
+        )
 
 
 # Singleton instance

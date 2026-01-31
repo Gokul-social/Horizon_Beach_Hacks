@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Play, Pause, RotateCcw, Target, Zap, Loader2 } from "lucide-react";
+import { Play, Pause, RotateCcw, Target, Zap, Loader2, AlertCircle } from "lucide-react";
 import { twinApi, type TwinStats, type SimulationResult } from "@/lib/api";
 
 export default function AttackSimulator() {
@@ -10,6 +10,8 @@ export default function AttackSimulator() {
   const [simulating, setSimulating] = useState(false);
   const [simulationResult, setSimulationResult] =
     useState<SimulationResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [attackType, setAttackType] = useState<string>("ransomware");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -17,8 +19,10 @@ export default function AttackSimulator() {
         setLoading(true);
         const stats = await twinApi.getStats();
         setTwinStats(stats);
+        setError(null);
       } catch (err) {
         console.warn("Digital twin API unavailable:", err);
+        // Don't set error for stats - just continue with default values
       } finally {
         setLoading(false);
       }
@@ -29,16 +33,24 @@ export default function AttackSimulator() {
   const runSimulation = async () => {
     try {
       setSimulating(true);
+      setError(null);
       const result = await twinApi.simulate({
-        attack_type: "ransomware",
+        attack_type: attackType,
         entry_point: "external_firewall",
       });
       setSimulationResult(result);
-    } catch (err) {
-      console.warn("Simulation failed:", err);
+    } catch (err: unknown) {
+      console.error("Simulation failed:", err);
+      const errorMessage = err instanceof Error ? err.message : "Simulation failed. Please ensure you are logged in.";
+      setError(errorMessage);
     } finally {
       setSimulating(false);
     }
+  };
+
+  const resetSimulation = () => {
+    setSimulationResult(null);
+    setError(null);
   };
 
   const mitrePhases = [
@@ -72,6 +84,17 @@ export default function AttackSimulator() {
           )}
         </div>
         <div className="flex items-center space-x-3">
+          {/* Attack Type Selector */}
+          <select
+            value={attackType}
+            onChange={(e) => setAttackType(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="ransomware">Ransomware</option>
+            <option value="apt">APT</option>
+            <option value="insider">Insider Threat</option>
+            <option value="ddos">DDoS</option>
+          </select>
           <button
             onClick={runSimulation}
             disabled={simulating}
@@ -91,7 +114,7 @@ export default function AttackSimulator() {
             <span className="text-sm font-medium">Pause</span>
           </button>
           <button
-            onClick={() => setSimulationResult(null)}
+            onClick={resetSimulation}
             className="flex items-center space-x-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
@@ -100,22 +123,119 @@ export default function AttackSimulator() {
         </div>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-300">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm">{error}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Attack Graph Canvas */}
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 p-6 transition-colors">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Attack Path Visualization
           </h3>
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-md h-96 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600">
-            <div className="text-center">
-              <Target className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
-              <p className="text-gray-600 dark:text-white font-medium">
-                Interactive Attack Graph
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
-                Visualizes attack paths and impact
-              </p>
-            </div>
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-md h-96 overflow-auto border-2 border-dashed border-gray-300 dark:border-gray-600 p-4">
+            {simulating ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-white font-medium">
+                    Running Simulation...
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                    Analyzing attack paths and blast radius
+                  </p>
+                </div>
+              </div>
+            ) : simulationResult && simulationResult.paths_found?.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs font-medium">
+                    {simulationResult.attack_type?.toUpperCase()}
+                  </span>
+                  <span>Entry: <strong>{simulationResult.entry_point}</strong></span>
+                  {simulationResult.target && <span>→ Target: <strong>{simulationResult.target}</strong></span>}
+                </div>
+                
+                {/* Attack Paths Visualization */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    Attack Paths Found ({simulationResult.paths_found.length})
+                  </h4>
+                  {simulationResult.paths_found.slice(0, 5).map((pathInfo, idx) => (
+                    <div key={idx} className="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Path {idx + 1}
+                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                          pathInfo.risk_score >= 8 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+                          pathInfo.risk_score >= 5 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                          'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                        }`}>
+                          Risk: {pathInfo.risk_score?.toFixed(1) || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1">
+                        {pathInfo.path?.map((node, nodeIdx) => (
+                          <div key={nodeIdx} className="flex items-center">
+                            <span className={`px-2 py-1 text-xs rounded ${
+                              nodeIdx === 0 ? 'bg-red-500 text-white' :
+                              nodeIdx === pathInfo.path.length - 1 ? 'bg-purple-500 text-white' :
+                              'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+                            }`}>
+                              {node}
+                            </span>
+                            {nodeIdx < pathInfo.path.length - 1 && (
+                              <span className="text-gray-400 mx-1">→</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {pathInfo.description && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{pathInfo.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Blast Radius */}
+                {simulationResult.blast_radius && simulationResult.blast_radius.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                      Blast Radius ({simulationResult.blast_radius.length} assets)
+                    </h4>
+                    <div className="flex flex-wrap gap-1">
+                      {simulationResult.blast_radius.slice(0, 15).map((asset, idx) => (
+                        <span key={idx} className="px-2 py-1 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded">
+                          {asset}
+                        </span>
+                      ))}
+                      {simulationResult.blast_radius.length > 15 && (
+                        <span className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded">
+                          +{simulationResult.blast_radius.length - 15} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <Target className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-white font-medium">
+                    Interactive Attack Graph
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                    Click &quot;Start Simulation&quot; to visualize attack paths
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
