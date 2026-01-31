@@ -1,37 +1,206 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Loader2, RefreshCw } from "lucide-react";
+import { risksApi, type Risk } from "@/lib/api";
+
+// Fallback mock data
+const mockRisks = [
+  {
+    rank: 1,
+    name: "Ransomware Campaign - LockBit 3.0",
+    score: 98,
+    severity: "CRITICAL",
+    affected: 47,
+    category: "Malware",
+    lastDetected: "2m ago",
+  },
+  {
+    rank: 2,
+    name: "VPN Zero-Day RCE (CVE-2024-1234)",
+    score: 92,
+    severity: "CRITICAL",
+    affected: 23,
+    category: "Vulnerability",
+    lastDetected: "15m ago",
+  },
+  {
+    rank: 3,
+    name: "Phishing Campaign - Finance Dept",
+    score: 85,
+    severity: "HIGH",
+    affected: 156,
+    category: "Social Engineering",
+    lastDetected: "1h ago",
+  },
+  {
+    rank: 4,
+    name: "Unpatched Apache Struts",
+    score: 78,
+    severity: "HIGH",
+    affected: 12,
+    category: "Vulnerability",
+    lastDetected: "3h ago",
+  },
+  {
+    rank: 5,
+    name: "Insider Threat - Data Exfiltration",
+    score: 74,
+    severity: "HIGH",
+    affected: 3,
+    category: "Insider Threat",
+    lastDetected: "5h ago",
+  },
+  {
+    rank: 6,
+    name: "DDoS Attack Pattern Detected",
+    score: 68,
+    severity: "MEDIUM",
+    affected: 8,
+    category: "Network Attack",
+    lastDetected: "8h ago",
+  },
+  {
+    rank: 7,
+    name: "Weak Password Policy Violations",
+    score: 62,
+    severity: "MEDIUM",
+    affected: 89,
+    category: "Policy Violation",
+    lastDetected: "12h ago",
+  },
+  {
+    rank: 8,
+    name: "Outdated SSL/TLS Certificates",
+    score: 55,
+    severity: "MEDIUM",
+    affected: 34,
+    category: "Configuration",
+    lastDetected: "1d ago",
+  },
+  {
+    rank: 9,
+    name: "Misconfigured S3 Buckets",
+    score: 48,
+    severity: "LOW",
+    affected: 6,
+    category: "Cloud Security",
+    lastDetected: "2d ago",
+  },
+  {
+    rank: 10,
+    name: "Shadow IT - Unapproved SaaS",
+    score: 42,
+    severity: "LOW",
+    affected: 67,
+    category: "Policy Violation",
+    lastDetected: "3d ago",
+  },
+];
+
+interface DisplayRisk {
+  rank: number;
+  name: string;
+  score: number;
+  severity: string;
+  affected: number;
+  category: string;
+  lastDetected: string;
+}
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${diffDays}d ago`;
+}
+
 export default function RisksView() {
-  const risks = [
-    { rank: 1, name: 'Ransomware Campaign - LockBit 3.0', score: 98, severity: 'CRITICAL', affected: 47, category: 'Malware', lastDetected: '2m ago' },
-    { rank: 2, name: 'VPN Zero-Day RCE (CVE-2024-1234)', score: 92, severity: 'CRITICAL', affected: 23, category: 'Vulnerability', lastDetected: '15m ago' },
-    { rank: 3, name: 'Phishing Campaign - Finance Dept', score: 85, severity: 'HIGH', affected: 156, category: 'Social Engineering', lastDetected: '1h ago' },
-    { rank: 4, name: 'Unpatched Apache Struts', score: 78, severity: 'HIGH', affected: 12, category: 'Vulnerability', lastDetected: '3h ago' },
-    { rank: 5, name: 'Insider Threat - Data Exfiltration', score: 74, severity: 'HIGH', affected: 3, category: 'Insider Threat', lastDetected: '5h ago' },
-    { rank: 6, name: 'DDoS Attack Pattern Detected', score: 68, severity: 'MEDIUM', affected: 8, category: 'Network Attack', lastDetected: '8h ago' },
-    { rank: 7, name: 'Weak Password Policy Violations', score: 62, severity: 'MEDIUM', affected: 89, category: 'Policy Violation', lastDetected: '12h ago' },
-    { rank: 8, name: 'Outdated SSL/TLS Certificates', score: 55, severity: 'MEDIUM', affected: 34, category: 'Configuration', lastDetected: '1d ago' },
-    { rank: 9, name: 'Misconfigured S3 Buckets', score: 48, severity: 'LOW', affected: 6, category: 'Cloud Security', lastDetected: '2d ago' },
-    { rank: 10, name: 'Shadow IT - Unapproved SaaS', score: 42, severity: 'LOW', affected: 67, category: 'Policy Violation', lastDetected: '3d ago' },
-  ]
+  const [risks, setRisks] = useState<DisplayRisk[]>(mockRisks);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchRisks = async (isRefresh = false) => {
+    try {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+
+      const response = await risksApi.getTop10();
+      if (response.risks && response.risks.length > 0) {
+        const mappedRisks: DisplayRisk[] = response.risks.map(
+          (risk: Risk, index: number) => ({
+            rank: index + 1,
+            name: risk.name,
+            score: Math.round(risk.bwvs_score || risk.priority_score || 0),
+            severity: risk.severity.toUpperCase(),
+            affected: risk.affected_assets_count || 0,
+            category:
+              risk.cve_ids && risk.cve_ids.length > 0
+                ? "Vulnerability"
+                : "Threat",
+            lastDetected: risk.updated_at
+              ? formatTimeAgo(risk.updated_at)
+              : "N/A",
+          }),
+        );
+        setRisks(mappedRisks);
+      }
+    } catch (err) {
+      console.warn("Using mock data - API unavailable:", err);
+      setRisks(mockRisks);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRisks();
+  }, []);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'CRITICAL':
-        return 'bg-critical text-white'
-      case 'HIGH':
-        return 'bg-warning text-white'
-      case 'MEDIUM':
-        return 'bg-blue-500 text-white'
-      case 'LOW':
-        return 'bg-gray-400 text-white'
+      case "CRITICAL":
+        return "bg-critical text-white";
+      case "HIGH":
+        return "bg-warning text-white";
+      case "MEDIUM":
+        return "bg-blue-500 text-white";
+      case "LOW":
+        return "bg-gray-400 text-white";
       default:
-        return 'bg-gray-300 text-gray-800'
+        return "bg-gray-300 text-gray-800";
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Top 10 Risks Dashboard</h1>
+        <div className="flex items-center space-x-3">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Top 10 Risks Dashboard
+          </h1>
+          {loading && (
+            <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+          )}
+        </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => fetchRisks(true)}
+            disabled={refreshing}
+            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+            />
+            <span>Refresh</span>
+          </button>
           <button className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             Filter
           </button>
@@ -46,14 +215,30 @@ export default function RisksView() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b-2 border-gray-200 dark:border-gray-700">
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">Rank</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">Risk Name</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">Category</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">Score</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">Severity</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">Affected Assets</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">Last Detected</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">Actions</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">
+                  Rank
+                </th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">
+                  Risk Name
+                </th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">
+                  Category
+                </th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">
+                  Score
+                </th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">
+                  Severity
+                </th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">
+                  Affected Assets
+                </th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">
+                  Last Detected
+                </th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 dark:text-white">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -62,23 +247,35 @@ export default function RisksView() {
                   key={risk.rank}
                   className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                 >
-                  <td className="py-4 px-3 font-bold text-gray-900 dark:text-white">{risk.rank}</td>
-                  <td className="py-4 px-3 text-gray-800 dark:text-white font-medium">{risk.name}</td>
-                  <td className="py-4 px-3 text-gray-600 dark:text-white">{risk.category}</td>
+                  <td className="py-4 px-3 font-bold text-gray-900 dark:text-white">
+                    {risk.rank}
+                  </td>
+                  <td className="py-4 px-3 text-gray-800 dark:text-white font-medium">
+                    {risk.name}
+                  </td>
+                  <td className="py-4 px-3 text-gray-600 dark:text-white">
+                    {risk.category}
+                  </td>
                   <td className="py-4 px-3">
-                    <span className="font-bold text-gray-900 dark:text-white text-base">{risk.score}</span>
+                    <span className="font-bold text-gray-900 dark:text-white text-base">
+                      {risk.score}
+                    </span>
                   </td>
                   <td className="py-4 px-3">
                     <span
                       className={`px-2 py-1 rounded text-xs font-semibold ${getSeverityColor(
-                        risk.severity
+                        risk.severity,
                       )}`}
                     >
                       {risk.severity}
                     </span>
                   </td>
-                  <td className="py-4 px-3 text-gray-700 dark:text-white">{risk.affected} assets</td>
-                  <td className="py-4 px-3 text-gray-600 dark:text-white">{risk.lastDetected}</td>
+                  <td className="py-4 px-3 text-gray-700 dark:text-white">
+                    {risk.affected} assets
+                  </td>
+                  <td className="py-4 px-3 text-gray-600 dark:text-white">
+                    {risk.lastDetected}
+                  </td>
                   <td className="py-4 px-3">
                     <button className="px-3 py-1 bg-primary text-white rounded text-xs font-medium hover:bg-primary-dark transition-colors">
                       View Details
@@ -91,5 +288,5 @@ export default function RisksView() {
         </div>
       </div>
     </div>
-  )
+  );
 }
